@@ -1,12 +1,11 @@
 #### MAIN
 FROM ruby:3.1.3-bullseye as main
 
-ENV CARGO_HOME=/usr/local/cargo \
+ENV CARGO_HOME=/mnt/tmp/cargo-home \
     NODE_ENV=development \
     RUSTUP_HOME=/usr/local/rustup \
     SHELL=/bin/bash \
     TMP_DIR=/mnt/tmp \
-    WASM_OPT=/usr/local/binaryen/bin/wasm-opt \
     WORKDIR=/app
 
 RUN echo "Installing node" \
@@ -70,7 +69,7 @@ WORKDIR ${WORKDIR}
 # Based on https://github.com/rust-lang/docker-rust/blob/master/1.67.1/bullseye/Dockerfile
 RUN echo 'Installing Rust' \
     && set -eux \
-    && RUST_VERSION='1.67.1' \
+    && RUST_VERSION='1.69.0' \
     && RUSTUP_VERSION='1.25.2' \
     && dpkgArch="$(dpkg --print-architecture)" \
     && case "${dpkgArch##*-}" in \
@@ -88,17 +87,6 @@ RUN echo 'Installing Rust' \
     && rustup --version \
     && cargo --version \
     && rustc --version \
-    && echo "===================" \
-    && echo "Installing binaryen" \
-    && BINARYEN_VERSION='version_113' \
-    && set -ex \
-    && cd /tmp \
-    && curl -fsSLO --compressed "https://github.com/WebAssembly/binaryen/archive/refs/tags/${BINARYEN_VERSION}.tar.gz" \
-    && tar -xf "./${BINARYEN_VERSION}.tar.gz" \
-    && mv -fv "./binaryen-${BINARYEN_VERSION}" /usr/local/binaryen \
-    && cd /usr/local/binaryen \
-    && cmake -DBUILD_TESTS=OFF . \
-    && make \
     && echo 'Done'
 
 ENV npm_config_cache="${TMP_DIR}/npm-cache" \
