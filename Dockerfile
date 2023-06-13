@@ -89,7 +89,6 @@ RUN echo "Installing Rust" \
     && cd .. \
     && rm -rfv rust-install \
     && echo 'Smoke test' \
-    && rustup --version \
     && cargo --version \
     && rustc --version \
     && echo 'Done'
