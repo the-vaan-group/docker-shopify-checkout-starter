@@ -1,7 +1,7 @@
 #### MAIN
 FROM ruby:3.1.3-bullseye as main
 
-ENV CARGO_HOME=/mnt/tmp/cargo-home \
+ENV CARGO_HOME=/usr/local/cargo \
     NODE_ENV=development \
     RUSTUP_HOME=/usr/local/rustup \
     SHELL=/bin/bash \
@@ -62,28 +62,33 @@ RUN echo 'Installing build dependencies' \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt
 
-ENV PATH="${WORKDIR}/bin:${WORKDIR}/node_modules/.bin:/usr/local/cargo/bin:${PATH}"
+ENV PATH="${WORKDIR}/bin:${WORKDIR}/node_modules/.bin:${CARGO_HOME}:${PATH}"
 
 WORKDIR ${WORKDIR}
 
-# Based on https://github.com/rust-lang/docker-rust/blob/master/1.67.1/bullseye/Dockerfile
-RUN echo 'Installing Rust' \
-    && set -eux \
+RUN echo "Installing Rust" \
     && RUST_VERSION='1.69.0' \
-    && RUSTUP_VERSION='1.25.2' \
-    && dpkgArch="$(dpkg --print-architecture)" \
+    && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
     && case "${dpkgArch##*-}" in \
-        amd64) rustArch='x86_64-unknown-linux-gnu'; rustupSha256='bb31eaf643926b2ee9f4d8d6fc0e2835e03c0a60f34d324048aa194f0b29a71c' ;; \
-        arm64) rustArch='aarch64-unknown-linux-gnu'; rustupSha256='4ccaa7de6b8be1569f6b764acc28e84f5eca342f5162cd5c810891bff7ed7f74' ;; \
-        *) echo >&2 "unsupported architecture: ${dpkgArch}"; exit 1 ;; \
+      amd64) ARCH='x86_64-unknown-linux-gnu';; \
+      arm64) ARCH='aarch64-unknown-linux-gnu';; \
+      *) echo >&2 "unsupported architecture -- ${dpkgArch##*-}"; exit 1 ;; \
     esac \
-    && url="https://static.rust-lang.org/rustup/archive/${RUSTUP_VERSION}/${rustArch}/rustup-init" \
-    && wget "$url" \
-    && echo "${rustupSha256} *rustup-init" | sha256sum -c - \
-    && chmod +x rustup-init \
-    && ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host ${rustArch} \
-    && rm rustup-init \
-    && chmod -R a+w $RUSTUP_HOME $CARGO_HOME \
+    && set -eux \
+    && mkdir /tmp/rust-install \
+    && cd /tmp/rust-install \
+    && curl -fsSLO --compressed 'https://static.rust-lang.org/rust-key.gpg.ascii' \
+    && curl -fsSLO --compressed "https://static.rust-lang.org/dist/rust-${RUST_VERSION}-${ARCH}.tar.gz" \
+    && curl -fsSLO --compressed "https://static.rust-lang.org/dist/rust-${RUST_VERSION}-${ARCH}.tar.gz.asc" \
+    && gpg --batch --import rust-key.gpg.ascii \
+    && gpg --batch --verify "rust-${RUST_VERSION}-${ARCH}.tar.gz.asc" "rust-${RUST_VERSION}-${ARCH}.tar.gz" \
+    && tar -zxf "./rust-${RUST_VERSION}-${ARCH}.tar.gz" \
+    && cd "./rust-${RUST_VERSION}-${ARCH}.tar.gz" \
+    && ./install.sh \
+    && echo 'Cleaning up' \
+    && cd .. \
+    && rm -rfv rust-install \
+    && echo 'Smoke test' \
     && rustup --version \
     && cargo --version \
     && rustc --version \
