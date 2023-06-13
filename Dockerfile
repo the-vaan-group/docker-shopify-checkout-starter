@@ -83,7 +83,7 @@ RUN echo "Installing Rust" \
     && gpg --batch --import rust-key.gpg.ascii \
     && gpg --batch --verify "rust-${RUST_VERSION}-${ARCH}.tar.gz.asc" "rust-${RUST_VERSION}-${ARCH}.tar.gz" \
     && tar -zxf "./rust-${RUST_VERSION}-${ARCH}.tar.gz" \
-    && cd "./rust-${RUST_VERSION}-${ARCH}.tar.gz" \
+    && cd "./rust-${RUST_VERSION}-${ARCH}" \
     && ./install.sh \
     && echo 'Cleaning up' \
     && cd .. \
