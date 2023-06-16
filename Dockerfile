@@ -81,7 +81,8 @@ RUN echo "Installing Rust" \
     && cd /tmp/rust-install \
     && curl -fsSLO --compressed "https://static.rust-lang.org/rustup/dist/${ARCH}/rustup-init" \
     && curl -fsSLO --compressed "https://static.rust-lang.org/rustup/dist/${ARCH}/rustup-init.sha256" \
-    && sha256sum --check rustup-init.sha256 --status \
+    && cat rustup-init.sha256 | awk '{print $1} rustup-init' > ./checksums.txt \
+    && sha256sum --check ./checksums.txt --status \
     && ./rustup-init -y --no-modify-path --profile default --default-toolchain "${RUST_VERSION}" --default-host "${ARCH}" \
     && echo 'Cleaning up' \
     && cd .. \
