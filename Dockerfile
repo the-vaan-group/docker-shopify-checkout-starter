@@ -2,6 +2,8 @@
 FROM ruby:3.1.3-bullseye as main
 
 ENV CARGO_HOME=/usr/local/cargo \
+    CARGO_NET_GIT_FETCH_WITH_CLI=true \
+    CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     NODE_ENV=development \
     RUSTUP_HOME=/usr/local/rustup \
     SHELL=/bin/bash \
@@ -77,20 +79,19 @@ RUN echo "Installing Rust" \
     && set -eux \
     && mkdir /tmp/rust-install \
     && cd /tmp/rust-install \
-    && curl -fsSLO --compressed 'https://static.rust-lang.org/rust-key.gpg.ascii' \
-    && curl -fsSLO --compressed "https://static.rust-lang.org/dist/rust-${RUST_VERSION}-${ARCH}.tar.gz" \
-    && curl -fsSLO --compressed "https://static.rust-lang.org/dist/rust-${RUST_VERSION}-${ARCH}.tar.gz.asc" \
-    && gpg --batch --import rust-key.gpg.ascii \
-    && gpg --batch --verify "rust-${RUST_VERSION}-${ARCH}.tar.gz.asc" "rust-${RUST_VERSION}-${ARCH}.tar.gz" \
-    && tar -zxf "./rust-${RUST_VERSION}-${ARCH}.tar.gz" \
-    && cd "./rust-${RUST_VERSION}-${ARCH}" \
-    && ./install.sh \
+    && curl -fsSLO --compressed "https://static.rust-lang.org/rustup/dist/${ARCH}/rustup-init" \
+    && curl -fsSLO --compressed "https://static.rust-lang.org/rustup/dist/${ARCH}/rustup-init.sha256" \
+    && sha256sum --check rustup-init.sha256 --status \
+    && ./rustup-init -y --no-modify-path --profile default --default-toolchain "${RUST_VERSION}" --default-host "${ARCH}" \
     && echo 'Cleaning up' \
     && cd .. \
     && rm -rfv rust-install \
     && echo 'Smoke test' \
     && cargo --version \
     && rustc --version \
+    && rustup --version \
+    && echo 'Install wasm23-wasi target' \
+    && rustup target add wasm32-wasi \
     && echo 'Done'
 
 ENV npm_config_cache="${TMP_DIR}/npm-cache" \
