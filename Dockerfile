@@ -64,7 +64,7 @@ RUN echo 'Installing build dependencies' \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt
 
-ENV PATH="${WORKDIR}/bin:${WORKDIR}/node_modules/.bin:${CARGO_HOME}:${PATH}"
+ENV PATH="${WORKDIR}/bin:${WORKDIR}/node_modules/.bin:${CARGO_HOME}/bin:${PATH}"
 
 WORKDIR ${WORKDIR}
 
