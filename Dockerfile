@@ -11,7 +11,7 @@ ENV CARGO_HOME=/usr/local/cargo \
     WORKDIR=/app
 
 RUN echo "Installing node" \
-  && NODE_VERSION='16.19.0' \
+  && NODE_VERSION='18.17.0' \
   && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
     amd64) ARCH='x64';; \
@@ -100,7 +100,7 @@ ENV npm_config_cache="${TMP_DIR}/npm-cache" \
     npm_config_store_dir="${TMP_DIR}/pnpm-store"
 
 RUN echo "Installing pnpm" \
-    && PNPM_VERSION='8.6.1' \
+    && PNPM_VERSION='8.6.11' \
     && npm install -g "pnpm@${PNPM_VERSION}" \
     && echo "====================" \
     && echo "Installing ripgrep" \
