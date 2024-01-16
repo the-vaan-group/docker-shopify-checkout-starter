@@ -1,5 +1,5 @@
 #### MAIN
-FROM ruby:3.1.3-bullseye as main
+FROM ruby:3.1.4-bookworm as main
 
 ENV CARGO_HOME=/usr/local/cargo \
     CARGO_NET_GIT_FETCH_WITH_CLI=true \
@@ -11,7 +11,7 @@ ENV CARGO_HOME=/usr/local/cargo \
     WORKDIR=/app
 
 RUN echo "Installing node" \
-  && NODE_VERSION='18.17.0' \
+  && NODE_VERSION='20.11.0' \
   && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
     amd64) ARCH='x64';; \
@@ -100,7 +100,7 @@ ENV npm_config_cache="${TMP_DIR}/npm-cache" \
     npm_config_store_dir="${TMP_DIR}/pnpm-store"
 
 RUN echo "Installing pnpm" \
-    && PNPM_VERSION='8.6.11' \
+    && PNPM_VERSION='8.14.1' \
     && npm install -g "pnpm@${PNPM_VERSION}" \
     && echo "====================" \
     && echo "Installing ripgrep" \
@@ -121,7 +121,7 @@ RUN echo "Installing pnpm" \
     && rm -rf ./ripgrep* \
     && echo "====================" \
     && echo "Installing watchexec" \
-    && WATCHEXEC_VERSION='1.22.3' \
+    && WATCHEXEC_VERSION='1.23.0' \
     && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
     && case "${dpkgArch##*-}" in \
       amd64) ARCH='x86_64-unknown-linux-musl';; \
