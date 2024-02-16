@@ -74,7 +74,7 @@ ENV PATH="${WORKDIR}/bin:${WORKDIR}/node_modules/.bin:${CARGO_HOME}/bin:${PATH}"
 WORKDIR ${WORKDIR}
 
 RUN echo "Installing Rust" \
-    && RUST_VERSION='1.69.0' \
+    && RUST_VERSION='1.75.0' \
     && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
     && case "${dpkgArch##*-}" in \
       amd64) ARCH='x86_64-unknown-linux-gnu';; \
