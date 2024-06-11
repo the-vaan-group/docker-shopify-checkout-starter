@@ -11,7 +11,7 @@ ENV CARGO_HOME=/usr/local/cargo \
     WORKDIR=/app
 
 RUN echo "Installing node" \
-  && NODE_VERSION='18.19.1' \
+  && NODE_VERSION='20.14.0' \
   && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
     amd64) ARCH='x64';; \
@@ -34,6 +34,7 @@ RUN echo "Installing node" \
     C82FA3AE1CBEDC6BE46B9360C43CEC45C17AB93C \
     108F52B48DB57BB0CC439B2997B01419BD92F80A \
     A363A499291CBBC940DD62E41F10027AF002F8B0 \
+    CC68F5A3106FF448322E48ED27F5E38D5B0A215F \
   ; do \
       gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$key" || \
       gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" ; \
@@ -104,10 +105,33 @@ RUN echo "Installing Rust" \
 ENV npm_config_cache="${TMP_DIR}/npm-cache" \
     npm_config_store_dir="${TMP_DIR}/pnpm-store"
 
-RUN echo "Installing pnpm" \
-    && PNPM_VERSION='8.14.1' \
+RUN echo "Installing tooling" \
+    && echo "===============" \
+    && echo "Installing pnpm" \
+    && PNPM_VERSION='9.3.0' \
     && npm install -g "pnpm@${PNPM_VERSION}" \
-    && echo "====================" \
+    && echo "===================" \
+    && echo "Installing babashka" \
+    && BABASHKA_VERSION='1.3.190' \
+    && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
+    && case "${dpkgArch##*-}" in \
+      amd64) ARCH='amd64';; \
+      arm64) ARCH='aarch64';; \
+      *) echo "unsupported architecture -- ${dpkgArch##*-}"; exit 1 ;; \
+    esac \
+    && set -ex \
+    && cd $TMP_DIR \
+    && curl -fsSL --compressed --output bb.tar.gz \
+      "https://github.com/babashka/babashka/releases/download/v${BABASHKA_VERSION}/babashka-${BABASHKA_VERSION}-linux-${ARCH}-static.tar.gz" \
+    && curl -fsSL --output bb.tar.gz.sha256 \
+      "https://github.com/babashka/babashka/releases/download/v${BABASHKA_VERSION}/babashka-${BABASHKA_VERSION}-linux-${ARCH}-static.tar.gz.sha256" \
+    && echo "$(cat bb.tar.gz.sha256) bb.tar.gz" | sha256sum --check --status \
+    && tar -xf ./bb.tar.gz \
+    && cp -fv bb /usr/local/bin \
+    && chmod +x /usr/local/bin/bb \
+    && echo "Cleaning up" \
+    && rm -rf ./bb* \
+    && echo "==================" \
     && echo "Installing ripgrep" \
     && RIPGREP_VERSION='v13.0.0-4' \
     && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
