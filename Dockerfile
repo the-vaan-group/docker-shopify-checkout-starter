@@ -108,7 +108,7 @@ ENV npm_config_cache="${TMP_DIR}/npm-cache" \
 RUN echo "Installing tooling" \
     && echo "===============" \
     && echo "Installing pnpm" \
-    && PNPM_VERSION='9.3.0' \
+    && PNPM_VERSION='9.12.1' \
     && npm install -g "pnpm@${PNPM_VERSION}" \
     && echo "===================" \
     && echo "Installing babashka" \
