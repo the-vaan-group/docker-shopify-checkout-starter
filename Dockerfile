@@ -184,4 +184,22 @@ RUN echo "Installing tooling" \
     && chmod +x /usr/local/bin/hivemind \
     && echo "Cleaning up" \
     && rm -rf ./hivemind* \
-    && echo 'Done'
+    && echo "===================" \
+    && echo "Installing Dasel TOML parser" \
+    && DASEL_VERSION='2.8.1' \
+    && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
+    && case "${dpkgArch##*-}" in \
+      amd64) ARCH='amd64';; \
+      arm64) ARCH='arm64';; \
+      *) echo "unsupported architecture -- ${dpkgArch##*-}"; exit 1 ;; \
+    esac \
+    && set -ex \
+    && cd $TMP_DIR \
+    && curl -fsSLO --compressed "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_${ARCH}" \
+    && cp -fv "./dasel_linux_${ARCH}" /usr/local/bin/dasel \
+    && chmod +x /usr/local/bin/dasel \
+    && echo "Cleaning up" \
+    && rm -rf ./dasel* \
+    && dasel --version \
+    && echo "===================" \
+    && echo 'All Done'
