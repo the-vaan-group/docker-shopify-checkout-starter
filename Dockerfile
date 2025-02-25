@@ -11,30 +11,26 @@ ENV CARGO_HOME=/usr/local/cargo \
     WORKDIR=/app
 
 RUN echo "Installing node" \
-  && NODE_VERSION='20.14.0' \
+  && NODE_VERSION='20.18.3' \
   && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
     amd64) ARCH='x64';; \
     arm64) ARCH='arm64';; \
-    *) echo "unsupported architecture -- ${dpkgArch##*-}"; exit 1 ;; \
+    *) echo "unsupported architecture"; exit 1 ;; \
   esac \
   # use pre-existing gpg directory, see https://github.com/nodejs/docker-node/pull/1895#issuecomment-1550389150
   && export GNUPGHOME="$(mktemp -d)" \
   # gpg keys listed at https://github.com/nodejs/node#release-keys
   && set -ex \
   && for key in \
-    4ED778F539E3634C779C87C6D7062848A1AB005C \
-    141F07595B7B3FFE74309A937405533BE57C7D57 \
-    74F12602B6F1C4E913FAA37AD3A89613643B6201 \
+    C0D6248439F1D5604AAFFB4021D900FFDB233756 \
     DD792F5973C6DE52C432CBDAC77ABFA00DDBF2B7 \
-    61FC681DFB92A079F1685E77973F295594EC4689 \
+    CC68F5A3106FF448322E48ED27F5E38D5B0A215F \
     8FCCA13FEF1D0C2E91008E09770F7A9A5AE15600 \
-    C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8 \
     890C08DB8579162FEE0DF9DB8BEAB4DFCF555EF4 \
     C82FA3AE1CBEDC6BE46B9360C43CEC45C17AB93C \
     108F52B48DB57BB0CC439B2997B01419BD92F80A \
     A363A499291CBBC940DD62E41F10027AF002F8B0 \
-    CC68F5A3106FF448322E48ED27F5E38D5B0A215F \
   ; do \
       gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$key" || \
       gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" ; \
@@ -75,7 +71,7 @@ ENV PATH="${WORKDIR}/bin:${WORKDIR}/node_modules/.bin:${CARGO_HOME}/bin:${PATH}"
 WORKDIR ${WORKDIR}
 
 RUN echo "Installing Rust" \
-    && RUST_VERSION='1.75.0' \
+    && RUST_VERSION='1.85.0' \
     && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
     && case "${dpkgArch##*-}" in \
       amd64) ARCH='x86_64-unknown-linux-gnu';; \
@@ -98,8 +94,8 @@ RUN echo "Installing Rust" \
     && cargo --version \
     && rustc --version \
     && rustup --version \
-    && echo 'Install wasm23-wasi target' \
-    && rustup target add wasm32-wasi \
+    && echo 'Install wasi target' \
+    && rustup target add wasm32-wasip1 \
     && echo 'Done'
 
 ENV npm_config_cache="${TMP_DIR}/npm-cache" \
@@ -108,7 +104,7 @@ ENV npm_config_cache="${TMP_DIR}/npm-cache" \
 RUN echo "Installing tooling" \
     && echo "===============" \
     && echo "Installing pnpm" \
-    && PNPM_VERSION='9.12.1' \
+    && PNPM_VERSION='9.15.6' \
     && npm install -g "pnpm@${PNPM_VERSION}" \
     && echo "===================" \
     && echo "Installing babashka" \
