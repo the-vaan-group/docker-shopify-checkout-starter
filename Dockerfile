@@ -11,7 +11,7 @@ ENV CARGO_HOME=/usr/local/cargo \
     WORKDIR=/app
 
 RUN echo "Installing node" \
-  && NODE_VERSION='20.18.3' \
+  && NODE_VERSION='22.13.0' \
   && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
     amd64) ARCH='x64';; \
@@ -104,7 +104,7 @@ ENV npm_config_cache="${TMP_DIR}/npm-cache" \
 RUN echo "Installing tooling" \
     && echo "===============" \
     && echo "Installing pnpm" \
-    && PNPM_VERSION='9.15.6' \
+    && PNPM_VERSION='10.6.3' \
     && npm install -g "pnpm@${PNPM_VERSION}" \
     && echo "===================" \
     && echo "Installing babashka" \
