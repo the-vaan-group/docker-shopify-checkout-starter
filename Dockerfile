@@ -1,5 +1,5 @@
 #### MAIN
-FROM ruby:3.1.4-bookworm as main
+FROM ruby:3.1.6-bookworm AS main
 
 ENV CARGO_HOME=/usr/local/cargo \
     CARGO_NET_GIT_FETCH_WITH_CLI=true \
@@ -11,7 +11,7 @@ ENV CARGO_HOME=/usr/local/cargo \
     WORKDIR=/app
 
 RUN echo "Installing node" \
-  && NODE_VERSION='22.13.0' \
+  && NODE_VERSION='22.16.0' \
   && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
     amd64) ARCH='x64';; \
@@ -104,8 +104,9 @@ ENV npm_config_cache="${TMP_DIR}/npm-cache" \
 RUN echo "Installing tooling" \
     && echo "===============" \
     && echo "Installing pnpm" \
-    && PNPM_VERSION='10.6.3' \
+    && PNPM_VERSION='10.11.0' \
     && npm install -g "pnpm@${PNPM_VERSION}" \
+    && pnpm --version \
     && echo "===================" \
     && echo "Installing babashka" \
     && BABASHKA_VERSION='1.3.190' \
