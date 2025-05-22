@@ -1,8 +1,6 @@
 ### CUSTOM
-_js-dist
-_js-test
-config.yml
 *.zip
+.aider*
 /devops/lib
 /devops/lib/
 
