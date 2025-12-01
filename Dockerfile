@@ -1,5 +1,5 @@
 #### MAIN
-FROM ruby:3.1.6-bookworm AS main
+FROM ruby:3.4.7-trixie AS main
 
 ENV CARGO_HOME=/usr/local/cargo \
     CARGO_NET_GIT_FETCH_WITH_CLI=true \
@@ -11,7 +11,7 @@ ENV CARGO_HOME=/usr/local/cargo \
     WORKDIR=/app
 
 RUN echo "Installing node" \
-  && NODE_VERSION='22.16.0' \
+  && NODE_VERSION='24.11.1' \
   && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
     amd64) ARCH='x64';; \
@@ -23,7 +23,7 @@ RUN echo "Installing node" \
   # gpg keys listed at https://github.com/nodejs/node#release-keys
   && set -ex \
   && for key in \
-    C0D6248439F1D5604AAFFB4021D900FFDB233756 \
+    5BE8A3F6C8A5C01D106C0AD820B1A390B168D356 \
     DD792F5973C6DE52C432CBDAC77ABFA00DDBF2B7 \
     CC68F5A3106FF448322E48ED27F5E38D5B0A215F \
     8FCCA13FEF1D0C2E91008E09770F7A9A5AE15600 \
@@ -32,8 +32,8 @@ RUN echo "Installing node" \
     108F52B48DB57BB0CC439B2997B01419BD92F80A \
     A363A499291CBBC940DD62E41F10027AF002F8B0 \
   ; do \
-      gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$key" || \
-      gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" ; \
+      { gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$key" && gpg --batch --fingerprint "$key"; } || \
+      { gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" && gpg --batch --fingerprint "$key"; } ; \
   done \
   && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH.tar.xz" \
   && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc" \
@@ -64,14 +64,15 @@ RUN echo 'Installing build dependencies' \
         wget \
     && echo 'Cleaning up' \
     && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /var/cache/apt
+    && rm -rf /var/cache/apt \
+    && echo 'Done'
 
-ENV PATH="${WORKDIR}/bin:${WORKDIR}/node_modules/.bin:${CARGO_HOME}/bin:${PATH}"
+ENV PATH="${WORKDIR}/devops/bin:${WORKDIR}/node_modules/.bin:${CARGO_HOME}/bin:${PATH}"
 
 WORKDIR ${WORKDIR}
 
 RUN echo "Installing Rust" \
-    && RUST_VERSION='1.85.0' \
+    && RUST_VERSION='1.91.1' \
     && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
     && case "${dpkgArch##*-}" in \
       amd64) ARCH='x86_64-unknown-linux-gnu';; \
@@ -94,8 +95,8 @@ RUN echo "Installing Rust" \
     && cargo --version \
     && rustc --version \
     && rustup --version \
-    && echo 'Install wasi target' \
-    && rustup target add wasm32-wasip1 \
+    && echo 'Install wasm32 target' \
+    && rustup target add wasm32-unknown-unknown \
     && echo 'Done'
 
 ENV npm_config_cache="${TMP_DIR}/npm-cache" \
@@ -104,9 +105,32 @@ ENV npm_config_cache="${TMP_DIR}/npm-cache" \
 RUN echo "Installing tooling" \
     && echo "===============" \
     && echo "Installing pnpm" \
-    && PNPM_VERSION='10.11.0' \
+    && PNPM_VERSION='10.24.0' \
     && npm install -g "pnpm@${PNPM_VERSION}" \
     && pnpm --version \
+    && echo "===================" \
+    && echo "Installing Deno" \
+    && DENO_VERSION='2.6.0' \
+    && ARCH= && dpkgArch="$(dpkg --print-architecture)" \
+    && case "${dpkgArch##*-}" in \
+      amd64) ARCH='x86_64';; \
+      arm64) ARCH='aarch64';; \
+      *) echo "unsupported architecture -- ${dpkgArch##*-}"; exit 1 ;; \
+    esac \
+    && set -ex \
+    && cd $TMP_DIR \
+    && curl -fsSL --compressed --output deno.zip \
+      "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip" \
+    && curl -fsSL --output deno.zip.sha256 \
+      "https://github.com/denoland/deno/releases/download/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip.sha256sum" \
+    && echo "$(awk '{print $1}' deno.zip.sha256) deno.zip" | sha256sum --check --status \
+    && unzip deno.zip \
+    && cp -fv deno /usr/local/bin \
+    && chmod +x /usr/local/bin/deno \
+    && echo "Smoke test" \
+    && deno --version \
+    && echo "Cleaning up" \
+    && rm -rf ./deno* \
     && echo "===================" \
     && echo "Installing babashka" \
     && BABASHKA_VERSION='1.3.190' \
